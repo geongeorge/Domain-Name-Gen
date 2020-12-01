@@ -21,16 +21,19 @@ let outFile = `./${OUTPUT_DIR}/${OUTPUT_FILE_NAME}.txt`
 let count = 0
 while (fileService.fileExists(outFile)) {
   count++
-  outFile = `./${OUTPUT_DIR}/${OUTPUT_FILE_NAME}${count}.txt`
+  outFile = `${OUTPUT_DIR}/${OUTPUT_FILE_NAME}${count}.txt`
 }
-const timestamp = new Date().toLocaleString().replace(',', '')
-const headLine = `Possibly Available Domains (${timestamp})`
-fileService.writeLine(outFile, headLine)
-// End initialzing output file
 
 const writeToOutput = (data) => {
-  fileService.appendLine(outFile, data)
+  outStream.cork()
+  outStream.write('\n' + data)
+  process.nextTick(() => outStream.uncork())
 }
+
+const timestamp = new Date().toLocaleString().replace(',', '')
+const outStream = fileService.createOutputStream(outFile)
+writeToOutput(`Possibly Available Domains (${timestamp})`)
+// End initialzing output file
 
 const checkWords = (word1, word2) => {
   let currentWord = word1 + word2
@@ -46,7 +49,7 @@ const checkWords = (word1, word2) => {
   })
 }
 
-const main = async () => {
+const main = () => {
   lineReader.eachLine(DICT_1, (line1) => {
     lineReader.eachLine(DICT_2, (line2) => {
       checkWords(line1, line2)
