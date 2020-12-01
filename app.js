@@ -1,10 +1,11 @@
 const chalk = require('chalk')
+const lineReader = require('line-reader')
 
 const fileService = require('./utils/fileService')
 const dnsService = require('./utils/dnsService')
 
-const DICT_1 = './dicts/1.txt'
-const DICT_2 = './dicts/2.txt'
+const DICT_1 = './dicts/wordlist.txt'
+const DICT_2 = './dicts/wordlist.txt'
 const OUTPUT_DIR = './output'
 const OUTPUT_FILE_NAME = 'out'
 const CHECK_VICE_VERSA = false
@@ -31,35 +32,29 @@ const writeToOutput = (data) => {
   fileService.appendLine(outFile, data)
 }
 
-const checkWordlist = (words1, words2) => {
-  words1.forEach((word1) => {
-    words2.forEach((word2) => {
-      let currentWord = word1 + word2
-      let currentDomain = `${currentWord}.${TLD}`
+const checkWords = (word1, word2) => {
+  let currentWord = word1 + word2
+  let currentDomain = `${currentWord}.${TLD}`
 
-      dnsService.available(currentDomain).then((exists) => {
-        if (exists) {
-          logSuccessLine(`${currentDomain}`)
-          writeToOutput(currentDomain)
-        } else {
-          logWarningLine(`${currentDomain}`)
-        }
-      })
-    })
+  dnsService.available(currentDomain).then((exists) => {
+    if (exists) {
+      logSuccessLine(`${currentDomain}`)
+      writeToOutput(currentDomain)
+    } else {
+      logWarningLine(`${currentDomain}`)
+    }
   })
 }
 
 const main = async () => {
-  const list1 = await fileService.read(DICT_1)
-  const list2 = await fileService.read(DICT_2)
-
-  const [words1, words2] = [list1.split('\n'), list2.split('\n')]
-
-  checkWordlist(words1, words2)
-
-  if (CHECK_VICE_VERSA) {
-    checkWordlist(words2, words1)
-  }
+  lineReader.eachLine(DICT_1, (line1) => {
+    lineReader.eachLine(DICT_2, (line2) => {
+      checkWords(line1, line2)
+      if (CHECK_VICE_VERSA) {
+        checkWords(line2, line1)
+      }
+    })
+  })
 }
 
 main()
