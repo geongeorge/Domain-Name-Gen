@@ -1,6 +1,11 @@
-const fs = require('fs')
+const fs = require('graceful-fs')
 
 const fileService = {
+  createOutputStream(path) {
+    return fs.createWriteStream(path, {
+      flags: 'a', // append
+    })
+  },
   read(path) {
     return new Promise((resolve, reject) => {
       fs.readFile(path, 'utf8', function (err, data) {
