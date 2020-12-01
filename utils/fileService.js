@@ -12,6 +12,11 @@ const fileService = {
       })
     })
   },
+  writeLine(path, data) {
+    fs.writeFile(path, `\n${data}`, function (err) {
+      if (err) throw err
+    })
+  },
   appendLine(path, data) {
     fs.appendFile(path, `\n${data}`, function (err) {
       if (err) throw err
